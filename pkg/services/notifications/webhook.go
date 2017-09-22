@@ -8,12 +8,12 @@ import (
 	"io/ioutil"
 	"net"
 	"net/http"
-	"strconv"
 	"time"
 
 	"golang.org/x/net/context/ctxhttp"
 
 	"github.com/grafana/grafana/pkg/log"
+	"github.com/grafana/grafana/pkg/services/alerting"
 	"github.com/grafana/grafana/pkg/util"
 )
 
@@ -31,11 +31,11 @@ type Webhook struct {
 	HttpHeader map[string]string
 }
 
-type EvalMatche struct {
-	Value  float64 `json:"value"`
-	Metric string  `json:"metric"`
-	Tags   string  `json:"tags"`
-}
+//type EvalMatche struct {
+//	Value  float64           `json:"value"`
+//	Metric string            `json:"metric"`
+//	Tags   map[string]string `json:"tags"`
+//}
 
 type StateType string
 
@@ -47,14 +47,14 @@ const (
 )
 
 type BodyJson struct {
-	Title       string       `json:"title"`
-	RuleId      int          `json:"ruleId"`
-	RuleName    string       `json:"ruleName"`
-	State       string       `json:"state"`
-	RuleUrl     string       `json:"ruleUrl"`
-	ImageUrl    string       `json:"imageUrl"`
-	Message     string       `json:"message"`
-	EvalMatches []EvalMatche `json:"evalMatches"`
+	Title       string               `json:"title"`
+	RuleId      int                  `json:"ruleId"`
+	RuleName    string               `json:"ruleName"`
+	State       string               `json:"state"`
+	RuleUrl     string               `json:"ruleUrl"`
+	ImageUrl    string               `json:"imageUrl"`
+	Message     string               `json:"message"`
+	EvalMatches []alerting.EvalMatch `json:"evalMatches"`
 }
 
 type OneAlertJson struct {
@@ -127,18 +127,25 @@ func sendWebRequestSync(ctx context.Context, webhook *Webhook) error {
 		var buf bytes.Buffer
 		buf.WriteString("[ALERTING] " + bodyJson.Message)
 		for _, eval := range bodyJson.EvalMatches {
-			buf.WriteString(" ")
-			buf.WriteString(eval.Metric)
-			buf.WriteString(" : ")
-			//parse float64 to string
-			buf.WriteString(strconv.FormatFloat(eval.Value, 'g', 5, 64))
-			buf.WriteString(" ")
+			if eval.Tags != nil {
+				for _, v := range eval.Tags {
+					buf.WriteString(" ")
+					buf.WriteString(v)
+				}
+			} else {
+				buf.WriteString(" ")
+				buf.WriteString(eval.Metric)
+				buf.WriteString(" : ")
+				//parse float64 to string
+				buf.WriteString(eval.Value.String())
+				buf.WriteString(" ")
+			}
 		}
 		alarmContent = buf.String()
 	} else {
 		return nil
 	}
-	//webhookLog.Info(alarmContent)
+	//webhookLog.Info("---------- alarmContent : " + alarmContent + "-----------")
 	alarmJson := &OneAlertJson{
 		App:          webhook.Key,
 		AlarmName:    bodyJson.RuleName,

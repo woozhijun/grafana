@@ -96,8 +96,9 @@ export class GraphiteQueryCtrl extends QueryCtrl {
         if ((index-1) >= func.def.params.length) {
           throw { message: 'invalid number of parameters to method ' + func.def.name };
         }
-        this.addFunctionParameter(func, astNode.value, index, true);
-      break;
+        var shiftBack = this.isShiftParamsBack(func);
+        this.addFunctionParameter(func, astNode.value, index, shiftBack);
+        break;
       case 'metric':
         if (this.segments.length > 0) {
         if (astNode.segments.length !== 1) {
@@ -111,6 +112,10 @@ export class GraphiteQueryCtrl extends QueryCtrl {
         return this.uiSegmentSrv.newSegment(segment);
       });
     }
+  }
+
+  isShiftParamsBack(func) {
+    return func.def.name !== 'seriesByTag';
   }
 
   getSegmentPathUpTo(index) {
