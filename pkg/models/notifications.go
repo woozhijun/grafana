@@ -22,7 +22,6 @@ type SendWebhookSync struct {
 	Url        string
 	User       string
 	Password   string
-	Key        string
 	Body       string
 	HttpMethod string
 	HttpHeader map[string]string
