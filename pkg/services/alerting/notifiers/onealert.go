@@ -8,6 +8,7 @@ import (
   m "github.com/grafana/grafana/pkg/models"
   "github.com/grafana/grafana/pkg/services/alerting"
   "bytes"
+  "strconv"
 )
 
 func init() {
@@ -100,7 +101,9 @@ func (this *OneAlertNotifier) Notify(evalContext *alerting.EvalContext) error {
   bodyJSON.Set("alertName", evalContext.Rule.Name)
   bodyJSON.Set("alarmContent", alarmContent)
   bodyJSON.Set("eventType", eventType)
-  bodyJSON.Set("eventId", "123")
+  bodyJSON.Set("eventId", strconv.FormatInt(evalContext.Rule.DashboardId, 10) + "_" +
+                              strconv.FormatInt(evalContext.Rule.PanelId, 10) + "_" +
+                              strconv.FormatInt(evalContext.Rule.Id, 10))
   body, _ := bodyJSON.MarshalJSON()
 
   cmd := &m.SendWebhookSync{
