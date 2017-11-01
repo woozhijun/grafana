@@ -71,7 +71,7 @@ func (this *OneAlertNotifier) Notify(evalContext *alerting.EvalContext) error {
   state := evalContext.Rule.State
   if state == "ok" {
     eventType = "resolve"
-    alarmContent = "[RESOLVED] " + evalContext.Rule.Message
+    alarmContent = "[RESOLVED] " + evalContext.Rule.Message + "is Ok."
   } else if state == "alerting" {
     eventType = "trigger"
     var buf bytes.Buffer
@@ -91,6 +91,8 @@ func (this *OneAlertNotifier) Notify(evalContext *alerting.EvalContext) error {
         buf.WriteString(" ")
       }
     }
+
+    buf.WriteString(" Trigger policy(" + evalContext.Rule.Name + "), Please check it.")
     alarmContent = buf.String()
   } else {
     return nil
