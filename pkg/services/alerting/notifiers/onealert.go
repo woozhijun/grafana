@@ -40,7 +40,7 @@ func init() {
         <span class="gf-form-label width-10">startHour</span>
         <div class="gf-form-select-wrapper width-14">
             <select class="gf-form-input max-width-14" ng-model="ctrl.model.settings.startHour" ng-options="s for s in [
-              '00:00','01:00','02:00','03:00','04:00','05:00','06:00','07:00','08:00','09:00','10:00','11:00','12:00',
+              '---请选择---','00:00','01:00','02:00','03:00','04:00','05:00','06:00','07:00','08:00','09:00','10:00','11:00','12:00',
               '13:00','14:00','15:00','16:00','17:00','18:00','19:00','20:00','21:00','22:00','23:00',
               ]"></select>
           </select>
@@ -50,7 +50,7 @@ func init() {
         <span class="gf-form-label width-10">endHour</span>
         <div class="gf-form-select-wrapper width-14">
           <select class="gf-form-input max-width-14" ng-model="ctrl.model.settings.endHour" ng-options="s for s in [
-              '00:00','01:00','02:00','03:00','04:00','05:00','06:00','07:00','08:00','09:00','10:00','11:00','12:00',
+              '---请选择---','00:00','01:00','02:00','03:00','04:00','05:00','06:00','07:00','08:00','09:00','10:00','11:00','12:00',
               '13:00','14:00','15:00','16:00','17:00','18:00','19:00','20:00','21:00','22:00','23:00',
               ]"></select>
             </select>
@@ -153,7 +153,7 @@ func (this *OneAlertNotifier) Notify(evalContext *alerting.EvalContext) error {
 
 func validQuietTime(start string, end string) bool {
 
-  if start == "" || end == "" {
+  if start == "" || end == "" || start == "---请选择---" || end == "---请选择---" {
     return false
   }
   now := time.Now()
