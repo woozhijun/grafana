@@ -36,10 +36,6 @@ func init() {
         <span class="gf-form-label width-10">Password</span>
         <input type="text" class="gf-form-input max-width-14" ng-model="ctrl.model.settings.password"></input>
       </div>
-	  <div class="gf-form">
-        <span class="gf-form-label width-10">Key</span>
-        <input type="text" class="gf-form-input max-width-14" ng-model="ctrl.model.settings.key"></input>
-      </div>
     `,
 	})
 
@@ -56,7 +52,6 @@ func NewWebHookNotifier(model *m.AlertNotification) (alerting.Notifier, error) {
 		Url:          url,
 		User:         model.Settings.Get("username").MustString(),
 		Password:     model.Settings.Get("password").MustString(),
-		Key:          model.Settings.Get("key").MustString(),
 		HttpMethod:   model.Settings.Get("httpMethod").MustString("POST"),
 		log:          log.New("alerting.notifier.webhook"),
 	}, nil
@@ -67,7 +62,6 @@ type WebhookNotifier struct {
 	Url        string
 	User       string
 	Password   string
-	Key        string
 	HttpMethod string
 	log        log.Logger
 }
@@ -102,7 +96,6 @@ func (this *WebhookNotifier) Notify(evalContext *alerting.EvalContext) error {
 		Url:        this.Url,
 		User:       this.User,
 		Password:   this.Password,
-		Key:        this.Key,
 		Body:       string(body),
 		HttpMethod: this.HttpMethod,
 	}

@@ -63,7 +63,6 @@ func SendWebhookSync(ctx context.Context, cmd *m.SendWebhookSync) error {
 		Url:        cmd.Url,
 		User:       cmd.User,
 		Password:   cmd.Password,
-		Key:        cmd.Key,
 		Body:       cmd.Body,
 		HttpMethod: cmd.HttpMethod,
 		HttpHeader: cmd.HttpHeader,

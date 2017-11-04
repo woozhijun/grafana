@@ -3,7 +3,6 @@ package notifications
 import (
 	"bytes"
 	"context"
-	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"net"
@@ -13,56 +12,16 @@ import (
 	"golang.org/x/net/context/ctxhttp"
 
 	"github.com/grafana/grafana/pkg/log"
-	"github.com/grafana/grafana/pkg/services/alerting"
 	"github.com/grafana/grafana/pkg/util"
 )
-
-//var app = "16649b46-946d-57e7-a624-292ed50306d2"
-//var eventType_ = "trigger"
-var eventId = "123456"
 
 type Webhook struct {
 	Url        string
 	User       string
 	Password   string
-	Key        string
 	Body       string
 	HttpMethod string
 	HttpHeader map[string]string
-}
-
-//type EvalMatche struct {
-//	Value  float64           `json:"value"`
-//	Metric string            `json:"metric"`
-//	Tags   map[string]string `json:"tags"`
-//}
-
-type StateType string
-
-const (
-	ALERTING StateType = "alerting"
-	OK       StateType = "ok"
-	NODATA   StateType = "no_data"
-	ERROR    StateType = "error"
-)
-
-type BodyJson struct {
-	Title       string               `json:"title"`
-	RuleId      int                  `json:"ruleId"`
-	RuleName    string               `json:"ruleName"`
-	State       string               `json:"state"`
-	RuleUrl     string               `json:"ruleUrl"`
-	ImageUrl    string               `json:"imageUrl"`
-	Message     string               `json:"message"`
-	EvalMatches []alerting.EvalMatch `json:"evalMatches"`
-}
-
-type OneAlertJson struct {
-	App          string `json:"app"`
-	AlarmName    string `json:"alarmName"`
-	AlarmContent string `json:"alarmContent"`
-	EventType    string `json:"eventType"`
-	EventId      string `json:"eventId"`
 }
 
 var netTransport = &http.Transport{
@@ -105,57 +64,11 @@ func sendWebRequestSync(ctx context.Context, webhook *Webhook) error {
 	webhookLog.Info("Sending webhook", "url", webhook.Url, "http method", webhook.HttpMethod,
 		"user", webhook.User, "password", webhook.Password, "body", webhook.Body)
 
-	if webhook.Key == "" {
-		return nil
-	}
 	if webhook.HttpMethod == "" {
 		webhook.HttpMethod = http.MethodPost
 	}
-	bodyJson := &BodyJson{}
-	err := json.Unmarshal([]byte(webhook.Body), bodyJson)
-	if err != nil {
-		//webhook.Url = webhook.Url + "app=" + app + "&eventType=" + eventType + "&eventId=" + eventId + "&alarmName=" + bodyJson.RuleName + "&alarmContent=" + bodyJson.Message
-		webhookLog.Error(err.Error())
-	}
-	var eventType string
-	var alarmContent string
-	if bodyJson.State == "ok" {
-		eventType = "resolve"
-		alarmContent = "[RESOLVED] " + bodyJson.Message
-	} else if bodyJson.State == "alerting" {
-		eventType = "trigger"
-		var buf bytes.Buffer
-		buf.WriteString("[ALERTING] " + bodyJson.Message)
-		for _, eval := range bodyJson.EvalMatches {
-			if eval.Tags != nil {
-				for _, v := range eval.Tags {
-					buf.WriteString(" ")
-					buf.WriteString(v)
-				}
-			} else {
-				buf.WriteString(" ")
-				buf.WriteString(eval.Metric)
-				buf.WriteString(" : ")
-				//parse float64 to string
-				buf.WriteString(eval.Value.String())
-				buf.WriteString(" ")
-			}
-		}
-		alarmContent = buf.String()
-	} else {
-		return nil
-	}
-	//webhookLog.Info("---------- alarmContent : " + alarmContent + "-----------")
-	alarmJson := &OneAlertJson{
-		App:          webhook.Key,
-		AlarmName:    bodyJson.RuleName,
-		AlarmContent: alarmContent,
-		EventType:    eventType,
-		EventId:      eventId,
-	}
 
-	j, _ := json.Marshal(alarmJson)
-	request, err := http.NewRequest(webhook.HttpMethod, webhook.Url, bytes.NewReader([]byte(j)))
+	request, err := http.NewRequest(webhook.HttpMethod, webhook.Url, bytes.NewReader([]byte(webhook.Body)))
 	if err != nil {
 		return err
 	}
