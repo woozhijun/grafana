@@ -36,7 +36,7 @@ export class SaveDashboardAsModalCtrl {
   dismiss: () => void;
 
   /** @ngInject */
-  constructor(private $scope, private dashboardSrv) {
+  constructor(private dashboardSrv) {
     var dashboard = this.dashboardSrv.getCurrent();
     this.clone = dashboard.getSaveModelClone();
     this.clone.id = null;
@@ -49,7 +49,10 @@ export class SaveDashboardAsModalCtrl {
     if (dashboard.id > 0) {
       this.clone.rows.forEach(row => {
         row.panels.forEach(panel => {
-          delete panel.thresholds;
+          if (panel.type === "graph" && panel.alert) {
+            delete panel.thresholds;
+          }
+
           delete panel.alert;
         });
       });

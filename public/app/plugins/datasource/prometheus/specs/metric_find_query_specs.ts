@@ -1,4 +1,5 @@
-import {describe, beforeEach, it, sinon, expect, angularMocks} from 'test/lib/common';
+import {describe, beforeEach, it, expect, angularMocks} from 'test/lib/common';
+
 import moment from 'moment';
 import helpers from 'test/specs/helpers';
 import {PrometheusDatasource} from '../datasource';
@@ -7,7 +8,7 @@ import PrometheusMetricFindQuery from '../metric_find_query';
 describe('PrometheusMetricFindQuery', function() {
 
   var ctx = new helpers.ServiceTestContext();
-  var instanceSettings = {url: 'proxied', directUrl: 'direct', user: 'test', password: 'mupp' };
+  var instanceSettings = {url: 'proxied', directUrl: 'direct', user: 'test', password: 'mupp', jsonData: {}};
 
   beforeEach(angularMocks.module('grafana.core'));
   beforeEach(angularMocks.module('grafana.services'));

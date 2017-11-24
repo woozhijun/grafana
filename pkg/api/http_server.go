@@ -11,13 +11,16 @@ import (
 	"path"
 	"time"
 
+	"github.com/prometheus/client_golang/prometheus"
+
+	"github.com/prometheus/client_golang/prometheus/promhttp"
+
 	gocache "github.com/patrickmn/go-cache"
 	macaron "gopkg.in/macaron.v1"
 
 	"github.com/grafana/grafana/pkg/api/live"
 	httpstatic "github.com/grafana/grafana/pkg/api/static"
 	"github.com/grafana/grafana/pkg/bus"
-	"github.com/grafana/grafana/pkg/cmd/grafana-cli/logger"
 	"github.com/grafana/grafana/pkg/components/simplejson"
 	"github.com/grafana/grafana/pkg/log"
 	"github.com/grafana/grafana/pkg/middleware"
@@ -151,7 +154,7 @@ func (hs *HttpServer) newMacaron() *macaron.Macaron {
 
 	for _, route := range plugins.StaticRoutes {
 		pluginRoute := path.Join("/public/plugins/", route.PluginId)
-		logger.Debug("Plugins: Adding route", "route", pluginRoute, "dir", route.Directory)
+		hs.log.Debug("Plugins: Adding route", "route", pluginRoute, "dir", route.Directory)
 		hs.mapStatic(m, route.Directory, "", pluginRoute)
 	}
 
@@ -165,9 +168,9 @@ func (hs *HttpServer) newMacaron() *macaron.Macaron {
 	}))
 
 	m.Use(hs.healthHandler)
+	m.Use(hs.metricsEndpoint)
 	m.Use(middleware.GetContextHandler())
 	m.Use(middleware.Sessioner(&setting.SessionOptions))
-	m.Use(middleware.RequestMetrics())
 	m.Use(middleware.OrgRedirect())
 
 	// needs to be after context handler
@@ -178,6 +181,15 @@ func (hs *HttpServer) newMacaron() *macaron.Macaron {
 	m.Use(middleware.AddDefaultResponseHeaders())
 
 	return m
+}
+
+func (hs *HttpServer) metricsEndpoint(ctx *macaron.Context) {
+	if ctx.Req.Method != "GET" || ctx.Req.URL.Path != "/metrics" {
+		return
+	}
+
+	promhttp.HandlerFor(prometheus.DefaultGatherer, promhttp.HandlerOpts{}).
+		ServeHTTP(ctx.Resp, ctx.Req.Request)
 }
 
 func (hs *HttpServer) healthHandler(ctx *macaron.Context) {

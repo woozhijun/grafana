@@ -1,7 +1,7 @@
 ///<reference path="../../../../headers/common.d.ts" />
 
 import _ from 'lodash';
-import { describe, beforeEach, it, sinon, expect, angularMocks } from '../../../../../test/lib/common';
+import { describe, beforeEach, it, expect } from '../../../../../test/lib/common';
 import TimeSeries from 'app/core/time_series2';
 import {convertToHeatMap, convertToCards, elasticHistogramToHeatmap,
         calculateBucketSize, isHeatmapDataEqual} from '../heatmap_data_converter';
@@ -224,17 +224,17 @@ describe('ES Histogram converter', () => {
         '1422774000000': {
           x: 1422774000000,
           buckets: {
-            '1': { y: 1, count: 1, values: [], points: [] },
-            '2': { y: 2, count: 5, values: [], points: [] },
-            '3': { y: 3, count: 0, values: [], points: [] }
+            '1': { y: 1, count: 1, values: [], points: [], bounds: {bottom: 1, top: null}},
+            '2': { y: 2, count: 5, values: [], points: [], bounds: {bottom: 2, top: null}},
+            '3': { y: 3, count: 0, values: [], points: [], bounds: {bottom: 3, top: null}}
           }
         },
         '1422774060000': {
           x: 1422774060000,
           buckets: {
-            '1': { y: 1, count: 0, values: [], points: [] },
-            '2': { y: 2, count: 3, values: [], points: [] },
-            '3': { y: 3, count: 1, values: [], points: [] }
+            '1': { y: 1, count: 0, values: [], points: [], bounds: {bottom: 1, top: null}},
+            '2': { y: 2, count: 3, values: [], points: [], bounds: {bottom: 2, top: null}},
+            '3': { y: 3, count: 1, values: [], points: [], bounds: {bottom: 3, top: null}}
           }
         },
       };
@@ -272,17 +272,14 @@ describe('convertToCards', () => {
       {x: 1422774000000, y: 2, count: 1, values: [2], yBounds: {}},
       {x: 1422774060000, y: 2, count: 2, values: [2, 3], yBounds: {}}
     ];
-    let {cards, cardStats} = convertToCards(buckets);
-    expect(cards).to.eql(expectedCards);
+    let res = convertToCards(buckets);
+    expect(res.cards).to.eql(expectedCards);
   });
 
   it('should build proper cards stats', () => {
-    let expectedStats = {
-      min: 1,
-      max: 2
-    };
-    let {cards, cardStats} = convertToCards(buckets);
-    expect(cardStats).to.eql(expectedStats);
+    let expectedStats = {min: 1, max: 2};
+    let res = convertToCards(buckets);
+    expect(res.cardStats).to.eql(expectedStats);
   });
 });
 

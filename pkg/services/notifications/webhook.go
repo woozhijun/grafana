@@ -27,7 +27,8 @@ type Webhook struct {
 var netTransport = &http.Transport{
 	Proxy: http.ProxyFromEnvironment,
 	Dial: (&net.Dialer{
-		Timeout: 30 * time.Second,
+		Timeout:   30 * time.Second,
+		DualStack: true,
 	}).Dial,
 	TLSHandshakeTimeout: 5 * time.Second,
 }
@@ -61,8 +62,7 @@ func processWebhookQueue() {
 }
 
 func sendWebRequestSync(ctx context.Context, webhook *Webhook) error {
-	webhookLog.Info("Sending webhook", "url", webhook.Url, "http method", webhook.HttpMethod,
-		"user", webhook.User, "password", webhook.Password, "body", webhook.Body)
+	webhookLog.Debug("Sending webhook", "url", webhook.Url, "http method", webhook.HttpMethod)
 
 	if webhook.HttpMethod == "" {
 		webhook.HttpMethod = http.MethodPost
