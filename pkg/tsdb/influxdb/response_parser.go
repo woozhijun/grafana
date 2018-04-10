@@ -33,11 +33,13 @@ func (rp *ResponseParser) Parse(response *Response, query *Query) *tsdb.QueryRes
 
 func (rp *ResponseParser) transformRows(rows []Row, queryResult *tsdb.QueryResult, query *Query) tsdb.TimeSeriesSlice {
 	var result tsdb.TimeSeriesSlice
+
 	for _, row := range rows {
 		for columnIndex, column := range row.Columns {
 			if column == "time" {
 				continue
 			}
+
 			var points tsdb.TimeSeriesPoints
 			for _, valuePair := range row.Values {
 				point, err := rp.parseTimepoint(valuePair, columnIndex)

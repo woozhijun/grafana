@@ -8,18 +8,16 @@
 
     <title>Grafana</title>
 
-		<link href='[[.AppSubUrl]]/public/css/fonts.min.css' rel='stylesheet' type='text/css'>
-
-		[[if .User.LightTheme]]
-		  <link rel="stylesheet" href="[[.AppSubUrl]]/public/css/grafana.light.min.css">
-		[[else]]
-		  <link rel="stylesheet" href="[[.AppSubUrl]]/public/css/grafana.dark.min.css">
-		[[end]]
-
-    <link rel="icon" type="image/png" href="[[.AppSubUrl]]/public/img/fav32.png">
-    <link rel="mask-icon" href="[[.AppSubUrl]]/public/grafana_mask_icon.svg" color="#F05A28">
 		<base href="[[.AppSubUrl]]/" />
 
+		[[if .User.LightTheme]]
+		  <link rel="stylesheet" href="public/build/grafana.light.css?v[[ .BuildVersion ]]">
+		[[else]]
+		  <link rel="stylesheet" href="public/build/grafana.dark.css?v[[ .BuildVersion ]]">
+		[[end]]
+
+    <link rel="icon" type="image/png" href="public/img/fav32.png">
+    <link rel="mask-icon" href="public/img/grafana_mask_icon.svg" color="#F05A28">
 	</head>
 
 	<body ng-cloak>
@@ -88,13 +86,6 @@
 		};
 	</script>
 
-	<!-- build:js [[.AppSubUrl]]/public/app/boot.js -->
-	<script src="[[.AppSubUrl]]/public/vendor/npm/es6-shim/es6-shim.js"></script>
-	<script src="[[.AppSubUrl]]/public/vendor/npm/systemjs/dist/system.src.js"></script>
-	<script src="[[.AppSubUrl]]/public/app/system.conf.js"></script>
-	<script src="[[.AppSubUrl]]/public/app/boot.js"></script>
-	<!-- endbuild -->
-
 	[[if .GoogleTagManagerId]]
 		<script>
 			dataLayer = [{
@@ -114,5 +105,5 @@
 		<!-- End Google Tag Manager -->
 	[[end]]
 
-	</body>
+	<script type="text/javascript" src="public/build/manifest.6b71b9e12078311b5b98.js"></script><script type="text/javascript" src="public/build/vendor.c2fff223b0f768cc5f9a.js"></script><script type="text/javascript" src="public/build/app.5331f559bd9a1bed9a93.js"></script></body>
 </html>

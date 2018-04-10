@@ -1,11 +1,7 @@
-///<reference path="../../../headers/common.d.ts" />
-
 import './add_graphite_func';
 import './func_editor';
 
-import angular from 'angular';
 import _ from 'lodash';
-import moment from 'moment';
 import gfunc from './gfunc';
 import {Parser} from './parser';
 import {QueryCtrl} from 'app/plugins/sdk';
@@ -98,7 +94,7 @@ export class GraphiteQueryCtrl extends QueryCtrl {
         }
         var shiftBack = this.isShiftParamsBack(func);
         this.addFunctionParameter(func, astNode.value, index, shiftBack);
-        break;
+      break;
       case 'metric':
         if (this.segments.length > 0) {
         if (astNode.segments.length !== 1) {
@@ -189,7 +185,6 @@ export class GraphiteQueryCtrl extends QueryCtrl {
       altSegments.unshift(this.uiSegmentSrv.newSegment('*'));
       return altSegments;
     }).catch(err => {
-      appEvents.emit('alert-error', ['Error', err]);
       return [];
     });
   }
