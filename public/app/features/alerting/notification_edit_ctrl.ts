@@ -9,6 +9,8 @@ export class AlertNotificationEditCtrl {
   testSeverity = "critical";
   notifiers: any;
   notifierTemplateId: string;
+  alarmGroups: any;
+  alarmURL: string;
 
   model: any;
   defaults: any = {
@@ -22,7 +24,7 @@ export class AlertNotificationEditCtrl {
   };
 
   /** @ngInject */
-  constructor(private $routeParams, private backendSrv, private $location, private $templateCache, navModelSrv) {
+  constructor(private $routeParams, private backendSrv, private $location, private $templateCache, navModelSrv, private $sce) {
     this.navModel = navModelSrv.getAlertingNav();
 
     this.backendSrv.get(`/api/alert-notifiers`).then(notifiers => {
@@ -43,6 +45,8 @@ export class AlertNotificationEditCtrl {
     }).then(model => {
       this.model = model;
       this.notifierTemplateId = this.getNotifierTemplateId(this.model.type);
+      this.alarmURL = this.$sce.trustAsResourceUrl(`http://apm.mobike.io/api/apm-argus-dispatcher/api/alarmGroup/allAlarmGroup`);
+      this.alarmGroups = this.getAlarmGroups();
     });
   }
 
@@ -73,6 +77,15 @@ export class AlertNotificationEditCtrl {
     this.notifierTemplateId = this.getNotifierTemplateId(this.model.type);
   }
 
+  getAlarmGroups() {
+    this.backendSrv.requestAlarmGroup(this.alarmURL).then(data => {
+        let result = data.data;
+        result.unshift('---请选择---');
+        this.alarmGroups = result;
+    });
+    return this.alarmGroups;
+  }
+
   testNotification() {
     if (!this.theForm.$valid) {
       return;
@@ -85,9 +98,9 @@ export class AlertNotificationEditCtrl {
     };
 
     this.backendSrv.post(`/api/alert-notifications/test`, payload)
-    .then(res => {
-      appEvents.emit('alert-success', ['Test notification sent', '']);
-    });
+      .then(res => {
+        appEvents.emit('alert-success', ['Test notification sent', '']);
+      });
   }
 }
 
