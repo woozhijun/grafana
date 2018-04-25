@@ -6,7 +6,6 @@ import (
 	"github.com/grafana/grafana/pkg/log"
 	m "github.com/grafana/grafana/pkg/models"
 	"github.com/grafana/grafana/pkg/services/alerting"
-	"bytes"
 	"io/ioutil"
 	"encoding/json"
 	"net/http"
@@ -16,16 +15,13 @@ import (
 	"github.com/grafana/grafana/pkg/cmd/grafana-cli/logger"
 )
 
-const ALARM_GROUP_URL string = "http://apm.mobike.io/api/apm-argus-dispatcher/api/alarmGroup/allAlarmGroup"
-
 func init() {
-	var buf bytes.Buffer
-	alarmGroups := httpGetAlarmGroups()
-	if alarmGroups == "" {
-		alarmGroups = "['---请选择---']"
-	}
-	buf.WriteString(`
-
+  alerting.RegisterNotifier(&alerting.NotifierPlugin{
+    Type:        "argusAlarm",
+    Name:        "ArgusAlarm",
+    Description: "Sends HTTP POST request to argus alarm.",
+    Factory:     NewArgusAlarmNotifier,
+    OptionsTemplate: `
       <h3 class="page-heading">ArgusAlarm settings</h3>
       <div class="gf-form">
         <span class="gf-form-label width-10">Url</span>
@@ -41,9 +37,7 @@ func init() {
       <div class="gf-form">
         <span class="gf-form-label width-10">alarmGroup</span>
         <div class="gf-form-select-wrapper width-14">
-          <select class="gf-form-input" ng-model="ctrl.model.settings.alarmGroup" ng-options="alarmGroup for alarmGroup in `)
-	buf.WriteString(alarmGroups)
-          buf.WriteString(`">
+          <select class="gf-form-input" ng-model="ctrl.model.settings.alarmGroup" ng-options="alarmGroup for alarmGroup in ctrl.alarmGroups" ng-change="ctrl.getAlarmGroups(notification, $index)">
           </select>
         </div>
       </div>
@@ -68,14 +62,7 @@ func init() {
             </select>
           </div>
       </div>
-    `)
-
-  alerting.RegisterNotifier(&alerting.NotifierPlugin{
-    Type:        "argusAlarm",
-    Name:        "ArgusAlarm",
-    Description: "Sends HTTP POST request to argus alarm.",
-    Factory:     NewArgusAlarmNotifier,
-    OptionsTemplate: buf.String(),
+    `,
   })
 
 }
@@ -132,6 +119,7 @@ func (this *ArgusAlarmNotifier) Notify(evalContext *alerting.EvalContext) error 
 		status = 0
 		alarmContent = evalContext.Rule.Message + "(" + evalContext.Rule.Name + ") is alerting."
 	} else {
+		this.log.Warn(">>>.other state:" + string(state))
 		return nil
 	}
 
