@@ -112,6 +112,7 @@ func (this *ArgusAlarmNotifier) Notify(evalContext *alerting.EvalContext) error 
 	//}
 	bodyJSON := simplejson.New()
 	bodyJSON.Set("source", "grafana")
+	this.log.Info("Sending Rule state is " + string(state))
 	if state == "ok" {
 		status = 1
 		alarmContent = evalContext.Rule.Message + "(" + evalContext.Rule.Name + ") is ok."
@@ -136,40 +137,50 @@ func (this *ArgusAlarmNotifier) Notify(evalContext *alerting.EvalContext) error 
 	graphId := strconv.FormatInt(evalContext.Rule.DashboardId, 10) + "_" + strconv.FormatInt(evalContext.Rule.PanelId, 10) + "_" +
 		strconv.FormatInt(evalContext.Rule.Id, 10)
 
-	header := make(map[string]string)
-	header["Content-Type"] = "application/json"
-	for _, eval := range evalContext.EvalMatches {
-
-		bodyJSON.Set("metric", eval.Metric)
-		tags := eval.Tags
-		if  tags == nil {
-			tags = make(map[string]string)
-		}
-		tags["graphId"] = graphId
-		bodyJSON.Set("tags", tags)
-		bodyJSON.Set("value", eval.Value)
+	if state == "ok" {
 		body, _ := bodyJSON.MarshalJSON()
+		this.log.Info("Ok params：" + string(body))
+		sendArgusAlarm(this, evalContext, string(body))
+	} else {
+		for _, eval := range evalContext.EvalMatches {
 
-		this.log.Info("params：" + string(body))
-		cmd := &m.SendWebhookSync{
-			Url:        this.Url,
-			Body:       string(body),
-			HttpMethod: this.HttpMethod,
-			HttpHeader: header,
-		}
-		//this.log.Info("header:" + string(json.Marshal(cmd.HttpHeader)))
-		if !validQuietTime(this.startHour, this.endHour) {
-			if err := bus.DispatchCtx(evalContext.Ctx, cmd); err != nil {
-				this.log.Error("Failed to send argusAlarm", "error", err, "argusAlarm", this.Name)
-				return err
+			bodyJSON.Set("metric", eval.Metric)
+			tags := eval.Tags
+			if  tags == nil {
+				tags = make(map[string]string)
 			}
-		} else {
-			this.log.Info("The alarm is quiet time.---", alarmContent)
+			tags["graphId"] = graphId
+			bodyJSON.Set("tags", tags)
+			bodyJSON.Set("value", eval.Value)
+			body, _ := bodyJSON.MarshalJSON()
+
+			this.log.Info("params：" + string(body))
+			sendArgusAlarm(this, evalContext, string(body))
 		}
 	}
 	return nil
 }
 
+func sendArgusAlarm(this *ArgusAlarmNotifier, evalContext *alerting.EvalContext, params string) error {
+
+	header := make(map[string]string)
+	header["Content-Type"] = "application/json"
+	cmd := &m.SendWebhookSync{
+		Url:        this.Url,
+		Body:       params,
+		HttpMethod: this.HttpMethod,
+		HttpHeader: header,
+	}
+	if !validQuietTime(this.startHour, this.endHour) {
+		if err := bus.DispatchCtx(evalContext.Ctx, cmd); err != nil {
+			this.log.Error("Failed to send argusAlarm", "error", err, "argusAlarm", this.Name)
+			return err
+		}
+	} else {
+		this.log.Info("The alarm is quiet time.---" + this.startHour + "~" + this.endHour)
+	}
+	return nil
+}
 
 func httpGetAlarmGroups() string {
 
