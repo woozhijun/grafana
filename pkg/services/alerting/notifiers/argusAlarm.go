@@ -115,10 +115,13 @@ func (this *ArgusAlarmNotifier) Notify(evalContext *alerting.EvalContext) error 
 	this.log.Info("Sending Rule state is " + string(state))
 	if state == "ok" {
 		status = 1
-		alarmContent = evalContext.Rule.Message + "(" + evalContext.Rule.Name + ") is ok."
+		alarmContent = "RuleName: " + evalContext.Rule.Name + " is ok."
 	} else if state == "alerting" {
 		status = 0
 		alarmContent = evalContext.Rule.Message + "(" + evalContext.Rule.Name + ") is alerting."
+	} else if state == "no_data" {
+		status = 2
+		alarmContent =  "RuleName: " + evalContext.Rule.Name + " is no data."
 	} else {
 		this.log.Warn(">>>.other state:" + string(state))
 		return nil
@@ -137,11 +140,7 @@ func (this *ArgusAlarmNotifier) Notify(evalContext *alerting.EvalContext) error 
 	graphId := strconv.FormatInt(evalContext.Rule.DashboardId, 10) + "_" + strconv.FormatInt(evalContext.Rule.PanelId, 10) + "_" +
 		strconv.FormatInt(evalContext.Rule.Id, 10)
 
-	if state == "ok" {
-		body, _ := bodyJSON.MarshalJSON()
-		this.log.Info("Ok params：" + string(body))
-		sendArgusAlarm(this, evalContext, string(body))
-	} else {
+	if state == "alerting" {
 		for _, eval := range evalContext.EvalMatches {
 
 			bodyJSON.Set("metric", eval.Metric)
@@ -154,9 +153,13 @@ func (this *ArgusAlarmNotifier) Notify(evalContext *alerting.EvalContext) error 
 			bodyJSON.Set("value", eval.Value)
 			body, _ := bodyJSON.MarshalJSON()
 
-			this.log.Info("params：" + string(body))
+			this.log.Info("alert params：" + string(body))
 			sendArgusAlarm(this, evalContext, string(body))
 		}
+	} else {
+		body, _ := bodyJSON.MarshalJSON()
+		this.log.Info(string(state) + " params：" + string(body))
+		sendArgusAlarm(this, evalContext, string(body))
 	}
 	return nil
 }
