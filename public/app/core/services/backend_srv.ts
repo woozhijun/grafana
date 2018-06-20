@@ -113,6 +113,16 @@ export class BackendSrv {
     });
   }
 
+  requestAlarmGroup(url) {
+    // var firstAttempt = 0;
+    return this.$http({ method: 'GET', url: url}).then(results => {
+      return results.data;
+    }, err => {
+      this.$timeout(this.requestErrorHandler.bind(this, err), 50);
+      throw err;
+    });
+  }
+
   addCanceler(requestId, canceler) {
     if (requestId in this.inFlightRequests) {
       this.inFlightRequests[requestId].push(canceler);
