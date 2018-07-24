@@ -9,6 +9,7 @@ upgrading Grafana please check here before creating an issue.
 - [Datasource plugin written in typescript](https://github.com/grafana/typescript-template-datasource)
 - [Simple json dataource plugin](https://github.com/grafana/simple-json-datasource)
 - [Plugin development guide](http://docs.grafana.org/plugins/developing/development/)
+- [Webpack Grafana plugin template project](https://github.com/CorpGlory/grafana-plugin-template-webpack)
 
 ## Changes in v4.6
 
@@ -23,6 +24,6 @@ If you think we missed exposing a crucial lib or Grafana component let us know b
 
 ### Deprecated components 
 
-The angular directive `<spectrum-picker>` is no deprecated (will still work for a version more) but we recommend plugin authors
+The angular directive `<spectrum-picker>` is now deprecated (will still work for a version more) but we recommend plugin authors
 to upgrade to new `<color-picker color="ctrl.color" onChange="ctrl.onSparklineColorChange"></color-picker>`
 

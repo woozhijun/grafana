@@ -120,4 +120,11 @@ func addDataSourceMigration(mg *Migrator) {
 		{Name: "json_data", Type: DB_Text, Nullable: true},
 		{Name: "secure_json_data", Type: DB_Text, Nullable: true},
 	}))
+
+	const setVersionToOneWhereZero = `UPDATE data_source SET version = 1 WHERE version = 0`
+	mg.AddMigration("Update initial version to 1", NewRawSqlMigration(setVersionToOneWhereZero))
+
+	mg.AddMigration("Add read_only data column", NewAddColumnMigration(tableV2, &Column{
+		Name: "read_only", Type: DB_Bool, Nullable: true,
+	}))
 }

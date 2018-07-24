@@ -20,10 +20,41 @@ module.exports = merge(common, {
 
   module: {
     rules: [
+      {
+        test: /\.tsx?$/,
+        enforce: 'pre',
+        exclude: /node_modules/,
+        use: {
+          loader: 'tslint-loader',
+          options: {
+            emitErrors: true,
+            typeCheck: false,
+          }
+        }
+      },
+      {
+        test: /\.tsx?$/,
+        exclude: /node_modules/,
+        use: [
+          {
+            loader: 'awesome-typescript-loader',
+            options: {
+              errorsAsWarnings: false,
+            },
+          },
+        ]
+      },
       require('./sass.rule.js')({
-        sourceMap: false, minimize: true
+        sourceMap: false, minimize: true, preserveUrl: false
       })
     ]
+  },
+
+  devServer: {
+    noInfo: true,
+    stats: {
+      chunks: false,
+    },
   },
 
   plugins: [
@@ -48,8 +79,8 @@ module.exports = merge(common, {
     new webpack.optimize.CommonsChunkPlugin({
       names: ['vendor', 'manifest'],
     }),
-    function() {
-      this.plugin("done", function(stats) {
+    function () {
+      this.plugin("done", function (stats) {
         if (stats.compilation.errors && stats.compilation.errors.length) {
           console.log(stats.compilation.errors);
           process.exit(1);
