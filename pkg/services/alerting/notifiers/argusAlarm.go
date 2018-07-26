@@ -1,27 +1,27 @@
 package notifiers
 
 import (
+	"encoding/json"
 	"github.com/grafana/grafana/pkg/bus"
+	"github.com/grafana/grafana/pkg/cmd/grafana-cli/logger"
 	"github.com/grafana/grafana/pkg/components/simplejson"
 	"github.com/grafana/grafana/pkg/log"
 	m "github.com/grafana/grafana/pkg/models"
 	"github.com/grafana/grafana/pkg/services/alerting"
 	"io/ioutil"
-	"encoding/json"
 	"net/http"
+	"strconv"
 	"strings"
 	"time"
-	"strconv"
-	"github.com/grafana/grafana/pkg/cmd/grafana-cli/logger"
 )
 
 func init() {
-  alerting.RegisterNotifier(&alerting.NotifierPlugin{
-    Type:        "argusAlarm",
-    Name:        "ArgusAlarm",
-    Description: "Sends HTTP POST request to argus alarm.",
-    Factory:     NewArgusAlarmNotifier,
-    OptionsTemplate: `
+	alerting.RegisterNotifier(&alerting.NotifierPlugin{
+		Type:        "argusAlarm",
+		Name:        "ArgusAlarm",
+		Description: "Sends HTTP POST request to argus alarm.",
+		Factory:     NewArgusAlarmNotifier,
+		OptionsTemplate: `
       <h3 class="page-heading">ArgusAlarm settings</h3>
       <div class="gf-form">
         <span class="gf-form-label width-10">Url</span>
@@ -63,65 +63,62 @@ func init() {
           </div>
       </div>
     `,
-  })
+	})
 
 }
 
 func NewArgusAlarmNotifier(model *m.AlertNotification) (alerting.Notifier, error) {
-  url := model.Settings.Get("url").MustString()
-  if url == "" {
-    return nil, alerting.ValidationError{Reason: "Could not find url property in settings"}
-  }
+	url := model.Settings.Get("url").MustString()
+	if url == "" {
+		return nil, alerting.ValidationError{Reason: "Could not find url property in settings"}
+	}
 
-  return &ArgusAlarmNotifier{
-      NotifierBase: NewNotifierBase(model.Id, model.IsDefault, model.Name, model.Type, model.Settings),
-      Url:          url,
-	  HttpMethod:   model.Settings.Get("httpMethod").MustString("POST"),
-      alarmGroup:   model.Settings.Get("alarmGroup").MustString(),
-      startHour:    model.Settings.Get("startHour").MustString(),
-      endHour:      model.Settings.Get("endHour").MustString(),
-      log:          log.New("alerting.notifier.argusAlarm."),
-    }, nil
+	return &ArgusAlarmNotifier{
+		NotifierBase: NewNotifierBase(model.Id, model.IsDefault, model.Name, model.Type, model.Settings),
+		Url:          url,
+		HttpMethod:   model.Settings.Get("httpMethod").MustString("POST"),
+		alarmGroup:   model.Settings.Get("alarmGroup").MustString(),
+		startHour:    model.Settings.Get("startHour").MustString(),
+		endHour:      model.Settings.Get("endHour").MustString(),
+		log:          log.New("alerting.notifier.argusAlarm."),
+	}, nil
 }
 
 type ArgusAlarmNotifier struct {
-    NotifierBase
-    Url        string
+	NotifierBase
+	Url        string
 	HttpMethod string
 	alarmGroup string
-    startHour  string
-    endHour    string
-    log        log.Logger
+	startHour  string
+	endHour    string
+	log        log.Logger
 }
 
 func (this *ArgusAlarmNotifier) Notify(evalContext *alerting.EvalContext) error {
 
-	this.log.Info("Sending argusAlarm...")
+	this.log.Info(">>>.Sending argusAlarm...")
 	var status int
 	var alarmGroup string
 	var alarmContent string
 	state := evalContext.Rule.State
-	//condition := evalContext.Rule.Conditions
-	//for cond := range condition {
-	//
-	//	data, err := json.Marshal(cond)
-	//	if err != nil {
-	//		this.log.Info("解析错误" + err.Error())
-	//	}
-	//	this.log.Info(">>>.condition:" + string(data))
-	//}
+
 	bodyJSON := simplejson.New()
 	bodyJSON.Set("source", "grafana")
-	this.log.Info("Sending Rule state is " + string(state))
+	this.log.Info(">>>.Sending Rule state is " + string(state))
 	if state == "ok" {
 		status = 1
 		alarmContent = "RuleName: " + evalContext.Rule.Name + " is ok."
 	} else if state == "alerting" {
-		status = 0
-		alarmContent = evalContext.Rule.Message + "(" + evalContext.Rule.Name + ") is alerting."
-	} else if state == "no_data" {
-		status = 2
-		alarmContent =  "RuleName: " + evalContext.Rule.Name + " is no data."
+		if evalContext.Rule.NoDataState == "alerting" {
+			status = 2
+			alarmContent = "RuleName: " + evalContext.Rule.Name + " is no data."
+		} else if evalContext.Rule.ExecutionErrorState == "alerting" {
+			status = 3
+			alarmContent = "RuleName: " + evalContext.Rule.Name + " is execution error."
+		} else {
+			status = 0
+			alarmContent = evalContext.Rule.Message + ". For RuleName: " + evalContext.Rule.Name + " is alerting."
+		}
 	} else {
 		this.log.Warn(">>>.other state:" + string(state))
 		return nil
@@ -129,7 +126,7 @@ func (this *ArgusAlarmNotifier) Notify(evalContext *alerting.EvalContext) error 
 
 	bodyJSON.Set("status", status)
 	bodyJSON.Set("message", alarmContent)
-	bodyJSON.Set("datetime", time.Now().Unix() * 1000)
+	bodyJSON.Set("datetime", time.Now().Unix()*1000)
 	if this.alarmGroup == "---请选择---" {
 		alarmGroup = ""
 	} else {
@@ -137,30 +134,51 @@ func (this *ArgusAlarmNotifier) Notify(evalContext *alerting.EvalContext) error 
 	}
 	bodyJSON.Set("alarmGroup", alarmGroup)
 
-	graphId := strconv.FormatInt(evalContext.Rule.DashboardId, 10) + "_" + strconv.FormatInt(evalContext.Rule.PanelId, 10) + "_" +
-		strconv.FormatInt(evalContext.Rule.Id, 10)
+	graphId := strconv.FormatInt(evalContext.Rule.OrgId, 10) + "_" + strconv.FormatInt(evalContext.Rule.DashboardId, 10) + "_" +
+		strconv.FormatInt(evalContext.Rule.PanelId, 10)
 
 	if state == "alerting" {
-		for _, eval := range evalContext.EvalMatches {
 
-			bodyJSON.Set("metric", eval.Metric)
-			tags := eval.Tags
-			if  tags == nil {
-				tags = make(map[string]string)
+		evalMatches := evalContext.EvalMatches
+		if evalMatches != nil && len(evalMatches) > 0 {
+			//count := 0
+			for _, eval := range evalContext.EvalMatches {
+
+				metric := eval.Metric
+				result := strings.Index(metric, "{")
+				this.log.Info(string(result))
+				if result >= 0 {
+					metric = strings.TrimSpace(string([]byte(metric)[0:result]))
+				}
+				tags := eval.Tags
+				if tags == nil {
+					tags = make(map[string]string)
+				}
+				tags["graphId"] = graphId
+				bodyJSON.Set("tags", tags)
+				bodyJSON.Set("metric", metric)
+				bodyJSON.Set("value", eval.Value)
+				body, _ := bodyJSON.MarshalJSON()
+
+				this.log.Info(">>>.alert params：" + string(body))
+				sendArgusAlarm(this, evalContext, string(body))
+				//for count < 3 {
+				//	this.log.Info(strconv.Itoa(count) + " alert params：" + string(body))
+				//	sendArgusAlarm(this, evalContext, string(body))
+				//	break
+				//}
+				//count++
 			}
-			tags["graphId"] = graphId
-			bodyJSON.Set("tags", tags)
-			bodyJSON.Set("value", eval.Value)
-			body, _ := bodyJSON.MarshalJSON()
-
-			this.log.Info("alert params：" + string(body))
-			sendArgusAlarm(this, evalContext, string(body))
+			return nil
 		}
-	} else {
-		body, _ := bodyJSON.MarshalJSON()
-		this.log.Info(string(state) + " params：" + string(body))
-		sendArgusAlarm(this, evalContext, string(body))
 	}
+
+	tags := make(map[string]string)
+	tags["graphId"] = graphId
+	bodyJSON.Set("tags", tags)
+	body, _ := bodyJSON.MarshalJSON()
+	this.log.Info(string(state) + " params：" + string(body))
+	sendArgusAlarm(this, evalContext, string(body))
 	return nil
 }
 
@@ -212,7 +230,7 @@ func httpGetAlarmGroups() string {
 		logger.Error("err-Marshal: " + error.Error())
 		return ""
 	}
-	return strings.Replace(string(result),"\"", "'", -1)
+	return strings.Replace(string(result), "\"", "'", -1)
 }
 
 type AlarmGroupResult struct {
