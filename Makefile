@@ -37,3 +37,6 @@ run:
 
 protoc:
 	protoc -I pkg/tsdb/models pkg/tsdb/models/*.proto --go_out=plugins=grpc:pkg/tsdb/models/.
+
+docker-build:
+	docker build -t docker.mobike.io/apm/grafana .
