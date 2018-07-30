@@ -2,6 +2,9 @@
 
 all: deps build
 
+all-go: deps-go build-go build-server build-cli
+all-js: deps-js build-js
+
 deps-go:
 	go run build.go setup
 

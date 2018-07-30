@@ -4,10 +4,7 @@ RUN apk add build-base git make
 COPY . /go/src/github.com/grafana/grafana
 WORKDIR /go/src/github.com/grafana/grafana
 
-RUN make deps-go
-RUN make build-go
-RUN make build-server
-RUN make build-cli
+RUN make all-go
 
 FROM node:8.11-alpine AS node-onbuild
 RUN apk add --update build-base git make
@@ -15,8 +12,7 @@ RUN npm install -g yarn
 
 COPY . /source
 WORKDIR /source
-RUN make deps-js
-RUN make build-js
+RUN make all-js
 
 #
 FROM alpine:3.8
