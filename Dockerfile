@@ -24,13 +24,14 @@ MAINTAINER wuzhijun
 COPY . /source
 
 #
-COPY go-onbuild:/go/src/github.com/grafana/grafana/bin/linux-amd64/grafana-server /usr/bin/grafana-server
-COPY go-onbuild:/go/src/github.com/grafana/grafana/bin/linux-amd64/grafana-cli /usr/bin/grafana-cli
-COPY node-onbuild:/source/public /usr/share/grafana/public
+COPY --from=go-onbuild /go/src/github.com/grafana/grafana/bin/linux-amd64/grafana-server /usr/bin/grafana-server
+COPY --from=go-onbuild /go/src/github.com/grafana/grafana/bin/linux-amd64/grafana-cli /usr/bin/grafana-cli
+COPY --from=node-onbuild /source/public /usr/share/grafana/public
 
+RUN mkdir -p /etc/grafana/
 RUN cp /source/conf/grafana.ini /etc/grafana/
 RUN cp /source/conf/ldap.toml /etc/grafana/
-RUN cp /source/conf/provisioning/ /etc/grafana/provisioning/
+RUN cp -r /source/conf/provisioning /etc/grafana/provisioning
 
 RUN chmod 777 -R /etc/grafana/
 RUN chmod 777 -R /var/lib/grafana
