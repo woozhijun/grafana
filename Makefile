@@ -42,10 +42,4 @@ protoc:
 	protoc -I pkg/tsdb/models pkg/tsdb/models/*.proto --go_out=plugins=grpc:pkg/tsdb/models/.
 
 docker-build:
-	docker build -t docker.mobike.io/apm/grafana .
-
-docker-build-plugins:
-	docker build -t grafana:latest-with-plugins \
-		--build-arg "GRAFANA_VERSION=v5.2.1" \
-    		--build-arg "GF_INSTALL_PLUGINS=grafana-piechart-panel,mtanda-histogram-panel,alexanderzobnin-zabbix-app,grafana-kairosdb-datasource,abhisant-druid-datasource,michaeldmoore-annunciator-panel,digiapulssi-breadcrumb-panel,btplc-trend-box-panel,natel-discrete-panel,vonage-status-panel,btplc-status-dot-panel,grafana-clock-panel,grafana-simple-json-datasource" .
-
+	docker build -t docker.mobike.io/apm/grafana:`git rev-parse --short=8 HEAD` .
