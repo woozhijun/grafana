@@ -1,0 +1,7 @@
+---
+build:
+  stage: build
+  script:
+    - 'make docker-build TAG=`git rev-parse --short=8 HEAD`'
+    - 'docker push docker.mobike.io/apm/grafana:`git rev-parse --short=8 HEAD`'
+
