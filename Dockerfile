@@ -7,8 +7,9 @@ WORKDIR /go/src/github.com/grafana/grafana
 RUN make all-go
 
 FROM node:8.11-alpine AS node-onbuild
-RUN apk add --update build-base git make
+RUN apk add --update build-base git make python
 RUN npm install -g yarn
+RUN PHANTOMJS_CDNURL=https://npm.taobao.org/mirrors/phantomjs/ npm install phantomjs-prebuilt
 
 COPY . /source
 WORKDIR /source
@@ -24,14 +25,9 @@ COPY --from=go-onbuild /go/src/github.com/grafana/grafana/bin/linux-amd64/grafan
 COPY --from=go-onbuild /go/src/github.com/grafana/grafana/bin/linux-amd64/grafana-cli /usr/bin/grafana-cli
 COPY --from=node-onbuild /source/public /usr/share/grafana/public
 
-RUN mkdir -p /etc/grafana/
-RUN cp /source/conf/grafana.ini /etc/grafana/
-RUN cp /source/conf/ldap.toml /etc/grafana/
-RUN cp -r /source/conf/provisioning /etc/grafana/provisioning
-
-RUN chmod 777 -R /etc/grafana/
-RUN chmod 777 -R /var/lib/grafana
-RUN chmod 777 -R /usr/share/grafana
+RUN mkdir -p /etc/grafana/ && mkdir -p /var/lib/grafana
+RUN cp /source/conf/grafana.ini /etc/grafana/ && \
+    cp /source/conf/ldap.toml /etc/grafana/ && \
+    cp -r /source/conf/provisioning /etc/grafana/provisioning
 
 RUN chmod a+x /usr/bin/grafana-server
-ENTRYPOINT ["/usr/bin/grafana-server"]
