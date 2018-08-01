@@ -56,7 +56,7 @@ RUN if [ ! -z "${GF_INSTALL_PLUGINS}" ]; then \
     done; \
     fi
 
-COPY ./launch.sh /launch.sh
-RUN chmod +x /launch.sh
+COPY ./start.sh /start.sh
+RUN chmod +x /start.sh
 WORKDIR /
-ENTRYPOINT ["/launch.sh"]
+ENTRYPOINT ["/start.sh"]
