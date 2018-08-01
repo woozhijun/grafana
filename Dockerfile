@@ -36,14 +36,14 @@ COPY --from=node-onbuild /source/public /usr/share/grafana/public
 
 RUN mkdir -p "$GF_PATHS_CONFIG" "$GF_PATHS_DATA" \
 	     "$GF_PATHS_LOGS" "$GF_PATHS_PLUGINS" \
-	     "$GF_PATHS_PROVISIONING"
+	     "$GF_PATHS_PROVISIONING" "$GF_PATHS_HOME"
 RUN cp ./conf/grafana.ini "$GF_PATHS_CONFIG" && \
     cp ./conf/defaults.ini "$GF_PATHS_CONFIG" && \
     cp ./conf/ldap.toml "$GF_PATHS_CONFIG" && \
     cp -r ./conf/provisioning "$GF_PATHS_PROVISIONING" 
 
 RUN chmod a+x /usr/sbin/grafana-server && chmod a+x /usr/sbin/grafana-cli && \
-    chmod 777 "$GF_PATHS_DATA" "$GF_PATHS_LOGS" "$GF_PATHS_PLUGINS"
+    chmod 777 "$GF_PATHS_DATA" "$GF_PATHS_LOGS" "$GF_PATHS_PLUGINS" "$GF_PATHS_HOME"
 
 #
 ARG GF_INSTALL_PLUGINS="grafana-piechart-panel,mtanda-histogram-panel,alexanderzobnin-zabbix-app,grafana-kairosdb-datasource,abhisant-druid-datasource,michaeldmoore-annunciator-panel,digiapulssi-breadcrumb-panel,btplc-trend-box-panel,natel-discrete-panel,vonage-status-panel,btplc-status-dot-panel,grafana-clock-panel,grafana-simple-json-datasource"

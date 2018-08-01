@@ -12,6 +12,11 @@ if [ ! -w "$GF_PATHS_DATA" ]; then
     PERMISSIONS_OK=1
 fi
 
+if [ ! -r "$GF_PATHS_HOME" ]; then
+    echo "GF_PATHS_HOME='$GF_PATHS_HOME' is not readable."
+    PERMISSIONS_OK=1
+fi
+
 if [ $PERMISSIONS_OK -eq 1 ]; then
     echo "You may have issues with file permissions, more information here: http://docs.grafana.org/installation/docker/#migration-from-a-previous-version-of-the-docker-container-to-5-1-or-later"
     exit 1
@@ -28,5 +33,6 @@ if [ -z $configuration ]; then
    echo "exec_prod params error."
    exit 1
 else
-   /usr/sbin/grafana-server --config=$configuration cfg:default.paths.logs=/var/log/grafana cfg:default.paths.data=/var/lib/grafana cfg:default.paths.plugins=/var/lib/grafana/plugins cfg:default.paths.provisioning=/etc/grafana/provisionin 
+   echo /usr/sbin/grafana-server --homepath=$GF_PATHS_HOME --config=$configuration cfg:default.paths.logs=$GF_PATHS_LOGS cfg:default.paths.data=$GF_PATHS_DATA cfg:default.paths.plugins=$GF_PATHS_PLUGINS cfg:default.paths.provisioning=$GF_PATHS_PROVISIONING 
+   /usr/sbin/grafana-server --homepath=$GF_PATHS_HOME --config=$configuration cfg:default.paths.logs=$GF_PATHS_LOGS cfg:default.paths.data=$GF_PATHS_DATA cfg:default.paths.plugins=$GF_PATHS_PLUGINS cfg:default.paths.provisioning=$GF_PATHS_PROVISIONING 
 fi
