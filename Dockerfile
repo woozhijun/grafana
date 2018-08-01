@@ -41,7 +41,7 @@ RUN cp /source/conf/grafana.ini "$GF_PATHS_CONFIG" && \
     cp /source/conf/ldap.toml "$GF_PATHS_CONFIG" && \
     cp -r /source/conf/provisioning "$GF_PATHS_PROVISIONING" 
 
-RUN chmod a+x /usr/bin/grafana-server && chmod a+x /usr/bin/grafana-cli \
+RUN chmod a+x /usr/bin/grafana-server && chmod a+x /usr/bin/grafana-cli && \
     chmod 777 "$GF_PATHS_DATA" "$GF_PATHS_LOGS" "$GF_PATHS_PLUGINS"
 
 #
