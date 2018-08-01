@@ -46,7 +46,7 @@ RUN chmod a+x /usr/bin/grafana-server && chmod a+x /usr/bin/grafana-cli
 #
 ARG GF_INSTALL_PLUGINS="grafana-piechart-panel,mtanda-histogram-panel,alexanderzobnin-zabbix-app,grafana-kairosdb-datasource,abhisant-druid-datasource,michaeldmoore-annunciator-panel,digiapulssi-breadcrumb-panel,btplc-trend-box-panel,natel-discrete-panel,vonage-status-panel,btplc-status-dot-panel,grafana-clock-panel,grafana-simple-json-datasource"
 
-ENV GF_EXEC_PROD=${GF_EXEC_PROD}
+ARG GF_EXEC_PROD="production"
 RUN if [ ! -z "${GF_INSTALL_PLUGINS}" ]; then \
     OLDIFS=$IFS; \
         IFS=','; \
@@ -56,7 +56,7 @@ RUN if [ ! -z "${GF_INSTALL_PLUGINS}" ]; then \
     done; \
     fi
 
-#COPY ./start.sh /start.sh
-#WORKDIR /
-#RUN chmod +x /start.sh
-ENTRYPOINT ["./start.sh"]
+COPY ./launch.sh /launch.sh
+RUN chmod +x /touch.sh && 
+WORKDIR /
+ENTRYPOINT ["/launch.sh", "$GF_EXEC_PROD"]
