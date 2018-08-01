@@ -19,6 +19,7 @@ RUN make all-js
 #
 FROM alpine:3.8
 MAINTAINER wuzhijun
+RUN apk add ca-certificates
 COPY . /source
 
 ENV GF_PATHS_CONFIG="/etc/grafana" \
@@ -45,7 +46,7 @@ RUN chmod a+x /usr/bin/grafana-server && chmod a+x /usr/bin/grafana-cli
 #
 ARG GF_INSTALL_PLUGINS="grafana-piechart-panel,mtanda-histogram-panel,alexanderzobnin-zabbix-app,grafana-kairosdb-datasource,abhisant-druid-datasource,michaeldmoore-annunciator-panel,digiapulssi-breadcrumb-panel,btplc-trend-box-panel,natel-discrete-panel,vonage-status-panel,btplc-status-dot-panel,grafana-clock-panel,grafana-simple-json-datasource"
 
-ENV GF_EXEC_PROD=""
+ENV GF_EXEC_PROD=${GF_EXEC_PROD}
 RUN if [ ! -z "${GF_INSTALL_PLUGINS}" ]; then \
     OLDIFS=$IFS; \
         IFS=','; \
