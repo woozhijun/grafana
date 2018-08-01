@@ -59,4 +59,4 @@ RUN if [ ! -z "${GF_INSTALL_PLUGINS}" ]; then \
 COPY ./start.sh /start.sh
 WORKDIR /
 RUN chmod +x /start.sh
-ENTRYPOINT ["/start.sh", "$GF_EXEC_PROD"]
+ENTRYPOINT ["/start.sh"]
