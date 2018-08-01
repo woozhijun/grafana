@@ -36,10 +36,10 @@ COPY --from=node-onbuild /source/public /usr/share/grafana/public
 RUN mkdir -p "$GF_PATHS_CONFIG" "$GF_PATHS_DATA" \
 	     "$GF_PATHS_LOGS" "$GF_PATHS_PLUGINS" \
 	     "$GF_PATHS_PROVISIONING"
-RUN cp /source/conf/grafana.ini "$GF_PATHS_CONFIG" && \
-    cp /source/conf/defaults.ini "$GF_PATHS_CONFIG" && \
-    cp /source/conf/ldap.toml "$GF_PATHS_CONFIG" && \
-    cp -r /source/conf/provisioning "$GF_PATHS_PROVISIONING" 
+RUN cp ./conf/grafana.ini "$GF_PATHS_CONFIG" && \
+    cp ./conf/defaults.ini "$GF_PATHS_CONFIG" && \
+    cp ./conf/ldap.toml "$GF_PATHS_CONFIG" && \
+    cp -r ./conf/provisioning "$GF_PATHS_PROVISIONING" 
 
 RUN chmod a+x /usr/sbin/grafana-server && chmod a+x /usr/sbin/grafana-cli && \
     chmod 777 "$GF_PATHS_DATA" "$GF_PATHS_LOGS" "$GF_PATHS_PLUGINS"
