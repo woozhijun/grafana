@@ -6,7 +6,6 @@ docker volume create grafana-storage
 docker run -d \
   -p 3000:3000 \
   --name grafana \
-  --user 472 \
   -v grafana-storage:/var/lib/grafana \
   -e "GF_SERVER_ROOT_URL=http://grafana.monitor.io" \
   -e "GF_EXEC_PROD=production" \

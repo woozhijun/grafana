@@ -29,8 +29,8 @@ ENV GF_PATHS_CONFIG="/etc/grafana" \
     GF_PATHS_PLUGINS="/var/lib/grafana/plugins" \
     GF_PATHS_PROVISIONING="/etc/grafana/provisioning" 
 
-COPY --from=go-onbuild /go/src/github.com/grafana/grafana/bin/linux-amd64/grafana-server /usr/bin/grafana-server
-COPY --from=go-onbuild /go/src/github.com/grafana/grafana/bin/linux-amd64/grafana-cli /usr/bin/grafana-cli
+COPY --from=go-onbuild /go/src/github.com/grafana/grafana/bin/linux-amd64/grafana-server /usr/sbin/grafana-server
+COPY --from=go-onbuild /go/src/github.com/grafana/grafana/bin/linux-amd64/grafana-cli /usr/sbin/grafana-cli
 COPY --from=node-onbuild /source/public /usr/share/grafana/public
 
 RUN mkdir -p "$GF_PATHS_CONFIG" "$GF_PATHS_DATA" \
@@ -41,7 +41,7 @@ RUN cp /source/conf/grafana.ini "$GF_PATHS_CONFIG" && \
     cp /source/conf/ldap.toml "$GF_PATHS_CONFIG" && \
     cp -r /source/conf/provisioning "$GF_PATHS_PROVISIONING" 
 
-RUN chmod a+x /usr/bin/grafana-server && chmod a+x /usr/bin/grafana-cli && \
+RUN chmod a+x /usr/sbin/grafana-server && chmod a+x /usr/sbin/grafana-cli && \
     chmod 777 "$GF_PATHS_DATA" "$GF_PATHS_LOGS" "$GF_PATHS_PLUGINS"
 
 #
@@ -53,7 +53,7 @@ RUN if [ ! -z "${GF_INSTALL_PLUGINS}" ]; then \
         IFS=','; \
     for plugin in ${GF_INSTALL_PLUGINS}; do \
         IFS=$OLDIFS; \
-        /usr/bin/grafana-cli --pluginsDir "${GF_PATHS_PLUGINS}" plugins install ${plugin}; \
+        /usr/sbin/grafana-cli --pluginsDir "${GF_PATHS_PLUGINS}" plugins install ${plugin}; \
     done; \
     fi
 
