@@ -57,6 +57,6 @@ RUN if [ ! -z "${GF_INSTALL_PLUGINS}" ]; then \
     fi
 
 COPY ./launch.sh /launch.sh
-RUN chmod +x /touch.sh && 
+RUN chmod +x /launch.sh && 
 WORKDIR /
 ENTRYPOINT ["/launch.sh", "$GF_EXEC_PROD"]
