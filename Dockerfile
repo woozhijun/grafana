@@ -56,4 +56,6 @@ RUN if [ ! -z "${GF_INSTALL_PLUGINS}" ]; then \
     done; \
     fi
 
+COPY ./start.sh /start.sh
+WORKDIR /
 ENTRYPOINT ["/start.sh", "$GF_EXEC_PROD"]
