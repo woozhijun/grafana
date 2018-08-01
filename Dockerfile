@@ -30,13 +30,20 @@ ENV GF_PATHS_CONFIG="/etc/grafana" \
     GF_PATHS_PLUGINS="/var/lib/grafana/plugins" \
     GF_PATHS_PROVISIONING="/etc/grafana/provisioning" 
 
-COPY --from=go-onbuild /go/src/github.com/grafana/grafana/bin/linux-amd64/grafana-server /usr/sbin/grafana-server
-COPY --from=go-onbuild /go/src/github.com/grafana/grafana/bin/linux-amd64/grafana-cli /usr/sbin/grafana-cli
-COPY --from=node-onbuild /source/public /usr/share/grafana/public
-
 RUN mkdir -p "$GF_PATHS_CONFIG" "$GF_PATHS_DATA" \
-	     "$GF_PATHS_LOGS" "$GF_PATHS_PLUGINS" \
-	     "$GF_PATHS_PROVISIONING" "$GF_PATHS_HOME"
+             "$GF_PATHS_LOGS" "$GF_PATHS_PLUGINS" \
+             "$GF_PATHS_PROVISIONING" "$GF_PATHS_HOME"
+
+COPY --from=go-onbuild /go/src/github.com/grafana/grafana/bin/linux-amd64/grafana-server \
+     --from=go-onbuild /go/src/github.com/grafana/grafana/bin/linux-amd64/grafana-cli \ 
+     /usr/sbin/
+COPY --from=node-onbuild /source/public \
+     --from=node-onbuild /source/scripts \
+     --from=node-onbuild /source/devenv \
+     --from=node-onbuild /source/vendor \
+     --from=node-onbuild /source/conf \
+     "$GF_PATHS_HOME"/
+
 RUN cp ./conf/grafana.ini "$GF_PATHS_CONFIG" && \
     cp ./conf/defaults.ini "$GF_PATHS_CONFIG" && \
     cp ./conf/ldap.toml "$GF_PATHS_CONFIG" && \
