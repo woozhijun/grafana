@@ -1,4 +1,4 @@
-#!/bin/bash -e
+#!/bin/sh -e
 
 PERMISSIONS_OK=0
 
@@ -18,7 +18,7 @@ if [ $PERMISSIONS_OK -eq 1 ]; then
 fi
 
 configuration=""
-if [ $# -ge 1 ] && [ $1 == "production" ]; then
+if [ $GF_EXEC_PROD == "production" ]; then
     configuration="/etc/grafana/grafana.ini"
 else
     configuration="/etc/grafana/defaults.ini"
