@@ -21,6 +21,7 @@ FROM alpine:3.8
 MAINTAINER wuzhijun
 RUN apk add ca-certificates
 COPY . /source
+WORKDIR /source
 
 ENV GF_PATHS_CONFIG="/etc/grafana" \
     GF_PATHS_DATA="/var/lib/grafana" \
