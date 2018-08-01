@@ -34,9 +34,8 @@ RUN mkdir -p "$GF_PATHS_CONFIG" "$GF_PATHS_DATA" \
              "$GF_PATHS_LOGS" "$GF_PATHS_PLUGINS" \
              "$GF_PATHS_PROVISIONING" "$GF_PATHS_HOME"
 
-COPY --from=go-onbuild /go/src/github.com/grafana/grafana/bin/linux-amd64/grafana-server \
-     --from=go-onbuild /go/src/github.com/grafana/grafana/bin/linux-amd64/grafana-cli \ 
-     /usr/sbin/
+COPY --from=go-onbuild /go/src/github.com/grafana/grafana/bin/linux-amd64/grafana-server /usr/sbin/grafana-server
+COPY --from=go-onbuild /go/src/github.com/grafana/grafana/bin/linux-amd64/grafana-cli /usr/sbin/grafana-cli
 COPY --from=node-onbuild /source/public "$GF_PATHS_HOME"/public
 COPY --from=node-onbuild /source/scripts "$GF_PATHS_HOME"/scripts
 COPY --from=node-onbuild /source/devenv "$GF_PATHS_HOME"/devenv
