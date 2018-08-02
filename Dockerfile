@@ -40,6 +40,7 @@ COPY --from=node-onbuild /source/public "$GF_PATHS_HOME"/public
 COPY --from=node-onbuild /source/scripts "$GF_PATHS_HOME"/scripts
 COPY --from=node-onbuild /source/devenv "$GF_PATHS_HOME"/devenv
 COPY --from=node-onbuild /source/vendor "$GF_PATHS_HOME"/vendor
+COPY --from=node-onbuild /source/tools "$GF_PATHS_HOME"/tools
 COPY --from=node-onbuild /source/conf "$GF_PATHS_HOME"/conf
 
 RUN cp ./conf/grafana.ini "$GF_PATHS_CONFIG" && \
