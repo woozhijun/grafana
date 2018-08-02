@@ -1,5 +1,9 @@
 #!/bin/bash
 
+tag="latest"
+if [ -n "$1" ]; then
+  tag=$1
+fi
 docker rm -f grafana
 docker volume create grafana-storage
 
@@ -9,4 +13,4 @@ docker run -d \
   -v grafana-storage:/var/lib/grafana \
   -e "GF_SERVER_ROOT_URL=http://grafana.monitor.io" \
   -e "GF_EXEC_PROD=production" \
-  docker.mobike.io/apm/grafana:`git rev-parse --short=8 HEAD` \
+  docker.mobike.io/apm/grafana:$tag \
