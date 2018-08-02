@@ -1,5 +1,7 @@
 -include local/Makefile
 
+TAG ?= latest
+
 all: deps build
 
 all-go: deps-go build-go build-server build-cli
@@ -42,4 +44,4 @@ protoc:
 	protoc -I pkg/tsdb/models pkg/tsdb/models/*.proto --go_out=plugins=grpc:pkg/tsdb/models/.
 
 docker-build:
-	docker build -t docker.mobike.io/apm/grafana:`git rev-parse --short=8 HEAD` .
+	docker build -t docker.mobike.io/apm/grafana:$(TAG) .

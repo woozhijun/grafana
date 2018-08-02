@@ -33,6 +33,5 @@ if [ -z $configuration ]; then
    echo "exec_prod params error."
    exit 1
 else
-   echo /usr/sbin/grafana-server --homepath=$GF_PATHS_HOME --config=$configuration cfg:default.paths.logs=$GF_PATHS_LOGS cfg:default.paths.data=$GF_PATHS_DATA cfg:default.paths.plugins=$GF_PATHS_PLUGINS cfg:default.paths.provisioning=$GF_PATHS_PROVISIONING 
    exec /usr/sbin/grafana-server --homepath=$GF_PATHS_HOME --config=$configuration cfg:default.paths.logs=$GF_PATHS_LOGS cfg:default.paths.data=$GF_PATHS_DATA cfg:default.paths.plugins=$GF_PATHS_PLUGINS cfg:default.paths.provisioning=$GF_PATHS_PROVISIONING 
 fi
