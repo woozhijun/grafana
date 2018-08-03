@@ -8,9 +8,9 @@ RUN make all-go
 
 #
 FROM node:8.11-alpine AS node-onbuild
-RUN apk add --update build-base git make python
+RUN apk add --update build-base git make
 RUN npm install -g yarn
-RUN PHANTOMJS_CDNURL=https://npm.taobao.org/mirrors/phantomjs/ npm install phantomjs-prebuilt
+#RUN PHANTOMJS_CDNURL=https://npm.taobao.org/mirrors/phantomjs/ npm install phantomjs-prebuilt
 
 COPY . /source
 WORKDIR /source
