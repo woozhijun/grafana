@@ -109,15 +109,15 @@ func (this *ArgusAlarmNotifier) Notify(evalContext *alerting.EvalContext) error 
 		status = 1
 		alarmContent = "RuleName: " + evalContext.Rule.Name + " is ok."
 	} else if state == "alerting" {
-		if evalContext.Rule.NoDataState == "alerting" {
+		status = 0
+		alarmContent = evalContext.Rule.Message + ". For RuleName: " + evalContext.Rule.Name + " is alerting."
+		// 区分nodata、execution error
+		if evalContext.Error != nil {
+			status = 3
+			alarmContent = "RuleName: " + evalContext.Rule.Name + " is execution error."
+		} else if evalContext.NoDataFound {
 			status = 2
 			alarmContent = "RuleName: " + evalContext.Rule.Name + " is no data."
-			//} else if evalContext.Rule.ExecutionErrorState == "alerting" {
-			//	status = 3
-			//	alarmContent = "RuleName: " + evalContext.Rule.Name + " is execution error."
-		} else {
-			status = 0
-			alarmContent = evalContext.Rule.Message + ". For RuleName: " + evalContext.Rule.Name + " is alerting."
 		}
 	} else {
 		this.log.Warn(">>>.other state:" + string(state))
