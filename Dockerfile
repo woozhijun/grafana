@@ -19,7 +19,7 @@ RUN make all-js
 #
 FROM alpine:3.8
 MAINTAINER wuzhijun
-RUN apk add ca-certificates
+RUN apk add ca-certificates tzdata
 COPY . /source
 WORKDIR /source
 
