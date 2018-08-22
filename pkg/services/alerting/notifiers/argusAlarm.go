@@ -41,6 +41,15 @@ func init() {
           </select>
         </div>
       </div>
+      <div class="gf-form">
+        <span class="gf-form-label width-10">alarmLevel</span>
+        <div class="gf-form-select-wrapper width-14">
+          <select class="gf-form-input" ng-model="ctrl.model.settings.alarmLevel" ng-options="alarmLevel for alarmLevel in ['---请选择---', 'INFO', 'WARNING', 'CRITICAL']">
+          </select>
+        </div>
+		<span style="font-size:8px;color:#ccc;">* 可选，默认WARNING短信；INFO企业微信；CRITICAL电话</span>
+      </div>
+  	  
       <h3 class="page-heading">Quiet hours</h3>
       <div class="gf-form">
         <span class="gf-form-label width-10">startHour</span>
@@ -78,6 +87,7 @@ func NewArgusAlarmNotifier(model *m.AlertNotification) (alerting.Notifier, error
 		Url:          url,
 		HttpMethod:   model.Settings.Get("httpMethod").MustString("POST"),
 		alarmGroup:   model.Settings.Get("alarmGroup").MustString(),
+		alarmLevel:   model.Settings.Get("alarmLevel").MustString(),
 		startHour:    model.Settings.Get("startHour").MustString(),
 		endHour:      model.Settings.Get("endHour").MustString(),
 		log:          log.New("alerting.notifier.argusAlarm."),
@@ -89,6 +99,7 @@ type ArgusAlarmNotifier struct {
 	Url        string
 	HttpMethod string
 	alarmGroup string
+	alarmLevel string
 	startHour  string
 	endHour    string
 	log        log.Logger
@@ -99,6 +110,7 @@ func (this *ArgusAlarmNotifier) Notify(evalContext *alerting.EvalContext) error 
 	this.log.Info(">>>.Sending argusAlarm...")
 	var status int
 	var alarmGroup string
+	var alarmLevel int
 	var alarmContent string
 	state := evalContext.Rule.State
 
@@ -133,6 +145,15 @@ func (this *ArgusAlarmNotifier) Notify(evalContext *alerting.EvalContext) error 
 		alarmGroup = this.alarmGroup
 	}
 	bodyJSON.Set("alarmGroup", alarmGroup)
+
+	if this.alarmLevel == "INFO" {
+		alarmLevel = 0
+	} else if this.alarmLevel == "CRITICAL" {
+		alarmLevel = 2
+	} else {
+		alarmLevel = 1
+	}
+	bodyJSON.Set("level", alarmLevel)
 
 	graphId := strconv.FormatInt(evalContext.Rule.OrgId, 10) + "_" + strconv.FormatInt(evalContext.Rule.DashboardId, 10) + "_" +
 		strconv.FormatInt(evalContext.Rule.PanelId, 10)
