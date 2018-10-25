@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"github.com/grafana/grafana/pkg/bus"
 	"github.com/grafana/grafana/pkg/cmd/grafana-cli/logger"
+	"github.com/grafana/grafana/pkg/components/null"
 	"github.com/grafana/grafana/pkg/components/simplejson"
 	"github.com/grafana/grafana/pkg/log"
 	m "github.com/grafana/grafana/pkg/models"
@@ -155,51 +156,50 @@ func (this *ArgusAlarmNotifier) Notify(evalContext *alerting.EvalContext) error 
 	}
 	bodyJSON.Set("level", alarmLevel)
 
-	graphId := strconv.FormatInt(evalContext.Rule.OrgId, 10) + "_" + strconv.FormatInt(evalContext.Rule.DashboardId, 10) + "_" +
+	df, _ := evalContext.GetDashboardUID()
+	graphId := strconv.FormatInt(evalContext.Rule.OrgId, 10) + "_" + df.Uid + "_" +
 		strconv.FormatInt(evalContext.Rule.PanelId, 10)
 
-	if state == "alerting" {
+	evalMatches := evalContext.EvalMatches
+	if evalMatches != nil && len(evalMatches) > 0 {
+		for _, eval := range evalContext.EvalMatches {
 
-		evalMatches := evalContext.EvalMatches
-		if evalMatches != nil && len(evalMatches) > 0 {
-			//count := 0
-			for _, eval := range evalContext.EvalMatches {
-
-				metric := eval.Metric
-				result := strings.Index(metric, "{")
-				this.log.Info(string(result))
-				if result >= 0 {
-					metric = strings.TrimSpace(string([]byte(metric)[0:result]))
-				}
-				tags := eval.Tags
-				if tags == nil {
-					tags = make(map[string]string)
-				}
-				tags["graphId"] = graphId
-				bodyJSON.Set("tags", tags)
-				bodyJSON.Set("metric", metric)
-				bodyJSON.Set("value", eval.Value)
-				body, _ := bodyJSON.MarshalJSON()
-
-				this.log.Info(">>>.alert params：" + string(body))
-				sendArgusAlarm(this, evalContext, string(body))
-				//for count < 3 {
-				//	this.log.Info(strconv.Itoa(count) + " alert params：" + string(body))
-				//	sendArgusAlarm(this, evalContext, string(body))
-				//	break
-				//}
-				//count++
+			metric := eval.Metric
+			result := strings.Index(metric, "{")
+			this.log.Info(string(result))
+			if result >= 0 {
+				metric = strings.TrimSpace(string([]byte(metric)[0:result]))
 			}
-			return nil
+			tags := eval.Tags
+			if tags == nil {
+				tags = make(map[string]string)
+			}
+			tags["graphId"] = graphId
+			bodyJSON.Set("tags", tags)
+			bodyJSON.Set("metric", metric)
+			bodyJSON.Set("value", eval.Value)
+			body, _ := bodyJSON.MarshalJSON()
+
+			this.log.Info(">>>.alert params：" + string(body))
+			sendArgusAlarm(this, evalContext, string(body))
+		}
+	} else {
+		// Get Data is Null, ExecError/NoData special case
+		if state == "alerting" {
+			tags := make(map[string]string)
+			tags["graphId"] = graphId
+			bodyJSON.Set("tags", tags)
+			if evalContext.Error != nil {
+				bodyJSON.Set("metric", "ExecError")
+			} else if evalContext.NoDataFound {
+				bodyJSON.Set("metric", "NoData")
+			}
+			bodyJSON.Set("value", null.FloatFromPtr(nil))
+			body, _ := bodyJSON.MarshalJSON()
+			this.log.Info(">>>.alert params：" + string(body))
+			sendArgusAlarm(this, evalContext, string(body))
 		}
 	}
-
-	tags := make(map[string]string)
-	tags["graphId"] = graphId
-	bodyJSON.Set("tags", tags)
-	body, _ := bodyJSON.MarshalJSON()
-	this.log.Info(string(state) + " params：" + string(body))
-	sendArgusAlarm(this, evalContext, string(body))
 	return nil
 }
 
