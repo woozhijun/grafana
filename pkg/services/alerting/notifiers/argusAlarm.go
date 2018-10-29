@@ -157,7 +157,11 @@ func (this *ArgusAlarmNotifier) Notify(evalContext *alerting.EvalContext) error 
 	bodyJSON.Set("level", alarmLevel)
 
 	df, _ := evalContext.GetDashboardUID()
-	graphId := strconv.FormatInt(evalContext.Rule.OrgId, 10) + "_" + df.Uid + "_" +
+	uid := strconv.FormatInt(evalContext.Rule.DashboardId, 10)
+	if df != nil {
+		uid = df.Uid
+	}
+	graphId := strconv.FormatInt(evalContext.Rule.OrgId, 10) + "_" + uid + "_" +
 		strconv.FormatInt(evalContext.Rule.PanelId, 10)
 
 	evalMatches := evalContext.EvalMatches
